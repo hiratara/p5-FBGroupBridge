@@ -2,7 +2,9 @@ use inc::Module::Install;
 name 'Hiratara-FBGroupBridge';
 all_from 'lib/Hiratara/FBGroupBridge.pm';
 
-# requires '';
+requires 'Plack';
+requires 'Class::Accessor::Lite';
+requires 'Facebook::Graph';
 
 tests 't/*.t';
 author_tests 'xt';
