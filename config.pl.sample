@@ -2,4 +2,5 @@ my $config = {
     api_id => 'YOUR API ID',
     app_secret => 'YOUR APP SECRET',
     postback_url => 'THE URL OF THIS APP',
+    storage_path => '/path/to/workfile.tsv',
 };

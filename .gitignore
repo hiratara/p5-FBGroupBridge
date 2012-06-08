@@ -11,3 +11,4 @@ MANIFEST.bak
 *.sw[po]
 config.pl
 *~
+data.tsv

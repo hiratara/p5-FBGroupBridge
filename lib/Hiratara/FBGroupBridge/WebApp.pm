@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Plack::Request;
 use Facebook::Graph;
+use Hiratara::FBGroupBridge::Storage;
 use Class::Accessor::Lite (
     new => 1,
     rw => [qw/app_base/],
@@ -42,8 +43,15 @@ sub _second_page {
         secret   => $self->config->{app_secret},
     );
 
-    $fb->request_access_token($code);
-    $res->body($fb->access_token);
+    my $storage = Hiratara::FBGroupBridge::Storage->new(
+        file => $self->app_base . '/' . $self->config->{storage_path},
+    );
+
+    my $token_response = $fb->request_access_token($code);
+    $storage->set(access_token => $token_response->token);
+    $storage->set(access_token_expires => $token_response->expires);
+
+    $res->body('Refresh access token');
 }
 
 sub call {
