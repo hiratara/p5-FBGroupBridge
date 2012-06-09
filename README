@@ -1,27 +1,9 @@
-This is Perl module Hiratara::FBGroupBridge.
+Hiratara::FBGroupBridge checks the timeline of facebook groups and sends
+latest posts by email.
 
-INSTALLATION
+*WARNINGS*
 
-Hiratara::FBGroupBridge installation is straightforward. If your CPAN shell is set up,
-you should just be able to do
+Hiratara::FBGroupBridge is for my own use.
 
-    % cpan Hiratara::FBGroupBridge
-
-Download it, unpack it, then build it as per the usual:
-
-    % perl Makefile.PL
-    % make && make test
-
-Then install it:
-
-    % make install
-
-DOCUMENTATION
-
-Hiratara::FBGroupBridge documentation is available as in POD. So you can do:
-
-    % perldoc Hiratara::FBGroupBridge
-
-to read the documentation online with your favorite pager.
-
-hiratara
+Though you feel free to use this app, 
+you'll have to read source codes to set up this app.
