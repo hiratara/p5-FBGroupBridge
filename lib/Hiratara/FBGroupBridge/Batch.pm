@@ -57,6 +57,25 @@ sub fetch_entries_by_period {
     return @results;
 }
 
+sub send_emails {
+    my ($self, %params) = @_;
+    my $config = Hiratara::FBGroupBridge->instance->config;
+
+    my $transport = Email::Sender::Transport::SMTP->new({
+        host => $config->{smtp_host},
+        port => $config->{smtp_port},
+    });
+    my $email = Email::Simple->create(
+        header => [
+            From    => $params{from},
+            To      => $params{to},
+            Subject => $params{subject},
+        ],
+        body => $params{body},
+    );
+    sendmail($email, {transport => $transport});
+}
+
 sub run {
     my $self = shift;
     my $config = Hiratara::FBGroupBridge->instance->config;
@@ -80,19 +99,12 @@ sub run {
     die "Didn't have new entries after $time_from." unless $body;
 
     # send email
-    my $transport = Email::Sender::Transport::SMTP->new({
-        host => $config->{smtp_host},
-        port => $config->{smtp_port},
-    });
-    my $email = Email::Simple->create(
-        header => [
-            From    => $config->{mail_from},
-            To      => $config->{mail_to},
-            Subject => "$time_from\以降の更新",
-        ],
+    $self->send_emails(
+        from => $config->{mail_from},
+        to => $config->{mail_to},
+        subject => "$time_from\以降の更新",
         body => $body,
     );
-    sendmail($email, {transport => $transport});
 
     # save when we checked entries last
     $self->storage->set('current_time' => $time_to->epoch);
