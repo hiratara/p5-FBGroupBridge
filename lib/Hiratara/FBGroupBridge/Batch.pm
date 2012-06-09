@@ -2,6 +2,7 @@ package Hiratara::FBGroupBridge::Batch;
 use strict;
 use warnings;
 use utf8;
+use Encode qw/encode/;
 use Facebook::Graph;
 use Time::Piece;
 use Time::Seconds qw/ONE_DAY/;
@@ -68,11 +69,16 @@ sub send_emails {
     });
     my $email = Email::Simple->create(
         header => [
-            From    => $params{from},
-            To      => $params{to},
-            Subject => $params{subject},
+            From    => encode('MIME-Header-ISO_2022_JP' => $params{from}),
+            To      => encode('MIME-Header-ISO_2022_JP' => $params{to}),
+            Subject => encode('MIME-Header-ISO_2022_JP' => $params{subject}),
         ],
-        body => $params{body},
+        body => encode('iso-2022-jp' => $params{body}),
+        attributes => {
+            content_type => 'text/plain',
+            charset      => 'ISO-2022-JP',
+            encoding     => '7bit',
+        },
     );
     sendmail($email, {transport => $transport});
 }
