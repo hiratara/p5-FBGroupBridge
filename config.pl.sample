@@ -1,4 +1,10 @@
+use strict;
+use warnings;
+use File::Basename qw/dirname/;
+
 my $config = {
+    # base directory of your app
+    app_base => dirname(__FILE__),
     api_id => 'YOUR API ID',
     app_secret => 'YOUR APP SECRET',
     postback_url => 'THE URL OF THIS APP',

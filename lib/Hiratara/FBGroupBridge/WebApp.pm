@@ -3,15 +3,16 @@ use strict;
 use warnings;
 use Plack::Request;
 use Facebook::Graph;
+use Hiratara::FBGroupBridge;
 use Hiratara::FBGroupBridge::Storage;
 use Class::Accessor::Lite (
     new => 1,
-    rw => [qw/app_base/],
+    rw => [qw//],
 );
 
 sub config {
     my $self = shift;
-    my $config = do ($self->app_base . "/config.pl");
+    my $config = Hiratara::FBGroupBridge->instance->config;
 
     no warnings qw/redefine/;
     *config = sub { $config };
@@ -44,7 +45,7 @@ sub _second_page {
     );
 
     my $storage = Hiratara::FBGroupBridge::Storage->new(
-        file => $self->app_base . '/' . $self->config->{storage_path},
+        file => $self->config->{app_base} . '/' . $self->config->{storage_path},
     );
 
     my $token_response = $fb->request_access_token($code);

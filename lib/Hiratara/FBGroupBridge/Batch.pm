@@ -8,18 +8,18 @@ use Time::Seconds qw/ONE_DAY/;
 use Email::Simple;
 use Email::Sender::Simple qw/sendmail/;
 use Email::Sender::Transport::SMTP;
+use Hiratara::FBGroupBridge;
 use Hiratara::FBGroupBridge::Storage;
 use Class::Accessor::Lite (
     new => 1,
-    rw => [qw/app_base/],
+    rw => [qw//],
 );
 
 sub run {
     my $self = shift;
-    my $config = do ($self->app_base . "/config.pl");
-
+    my $config = Hiratara::FBGroupBridge->instance->config;
     my $storage = new Hiratara::FBGroupBridge::Storage(
-        file => $self->app_base ."/$config->{storage_path}",
+        file => "$config->{app_base}/$config->{storage_path}",
     );
 
     my $token = $storage->get('access_token');

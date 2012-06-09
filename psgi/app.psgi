@@ -2,9 +2,11 @@ use strict;
 use warnings;
 use File::Basename qw/dirname/;
 use File::Spec ();
-our $APP_BASE;
-BEGIN { $APP_BASE = File::Spec->rel2abs(dirname __FILE__) . "/.." }
-use lib "$APP_BASE/lib";
+our $DIRNAME;
+BEGIN { $DIRNAME = File::Spec->rel2abs(dirname __FILE__) }
+use lib "$DIRNAME/../lib";
+use Hiratara::FBGroupBridge;
 use Hiratara::FBGroupBridge::WebApp;
 
-Hiratara::FBGroupBridge::WebApp->new(app_base => $APP_BASE)->to_psgi;
+Hiratara::FBGroupBridge->init(config_file => "$DIRNAME/../config.pl");
+Hiratara::FBGroupBridge::WebApp->new->to_psgi;
