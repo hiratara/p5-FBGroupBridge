@@ -5,7 +5,7 @@ use Encode qw/encode/;
 use Facebook::Graph;
 use Time::Piece;
 use Time::Seconds qw/ONE_DAY/;
-use Email::Simple;
+use Email::MIME;
 use Email::Sender::Simple qw/sendmail/;
 use Email::Sender::Transport::SMTP;
 use Text::Xslate;
@@ -102,7 +102,7 @@ sub send_emails {
                             $key => encode('MIME-Header-ISO_2022_JP' => $value);
     }
 
-    my $email = Email::Simple->create(
+    my $email = Email::MIME->create(
         header => \@encoded_headers,
         body => encode('iso-2022-jp' => $body),
         attributes => {

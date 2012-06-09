@@ -5,7 +5,7 @@ all_from 'lib/Hiratara/FBGroupBridge.pm';
 requires 'Plack';
 requires 'Class::Accessor::Lite';
 requires 'Facebook::Graph';
-requires 'Email::Simple';
+requires 'Email::MIME';
 requires 'Email::Sender::Simple';
 requires 'Text::Xslate';
 
