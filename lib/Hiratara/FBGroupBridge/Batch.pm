@@ -1,7 +1,6 @@
 package Hiratara::FBGroupBridge::Batch;
 use strict;
 use warnings;
-use utf8;
 use Encode qw/encode/;
 use Facebook::Graph;
 use Time::Piece;
