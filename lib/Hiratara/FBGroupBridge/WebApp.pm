@@ -44,15 +44,23 @@ sub _second_page {
         secret   => $self->config->{app_secret},
     );
 
-    my $storage = Hiratara::FBGroupBridge::Storage->new(
-        file => $self->config->{app_base} . '/' . $self->config->{storage_path},
-    );
-
     my $token_response = $fb->request_access_token($code);
-    $storage->set(access_token => $token_response->token);
-    $storage->set(access_token_expires => time + $token_response->expires);
+    my $access_token = $token_response->token;
+    my $access_token_expires = time + $token_response->expires;
 
-    $res->body('Refresh access token');
+    my $user_id = $fb->fetch('me')->{id};
+    if ($user_id eq $self->config->{your_id}) {
+        my $storage = Hiratara::FBGroupBridge::Storage->new(
+            file => $self->config->{app_base} . '/'
+                                              . $self->config->{storage_path},
+        );
+        $storage->set(access_token => $access_token);
+        $storage->set(access_token_expires => $access_token_expires);
+
+        $res->body('Refreshed access token');
+    } else {
+        $res->body('invalid access');
+    }
 }
 
 sub call {

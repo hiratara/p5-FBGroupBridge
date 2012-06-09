@@ -13,4 +13,5 @@ my $config = {
     smtp_host => 'your.host.com',
     smtp_port => 2525,
     your_email => 'your_email@address',
+    your_id => "your id of facebook",
 };
