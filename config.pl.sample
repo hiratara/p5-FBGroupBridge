@@ -10,8 +10,6 @@ my $config = {
     postback_url => 'THE URL OF THIS APP',
     storage_path => '/path/to/workfile.tsv',
     group_id => 'YOUR GROUP ID',
-    mail_from => 'mail@from',
-    mail_to => 'mail@to',
     smtp_host => 'your.host.com',
     smtp_port => 2525,
 };

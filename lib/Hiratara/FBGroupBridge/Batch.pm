@@ -59,21 +59,32 @@ sub fetch_entries_by_period {
     return @results;
 }
 
+sub parse_email {
+    my ($self, $email_text) = @_;
+    my ($header_text, $body) = split qr/(?:\x0d?\x0a){2}/sm, $email_text, 2;
+
+    return [$header_text =~ /^([^:]+):\s*(.*)$/gm], $body;
+}
+
 sub send_emails {
-    my ($self, %params) = @_;
+    my ($self, $headers, $body) = @_;
     my $config = Hiratara::FBGroupBridge->instance->config;
 
     my $transport = Email::Sender::Transport::SMTP->new({
         host => $config->{smtp_host},
         port => $config->{smtp_port},
     });
+
+    # encode header
+    my @encoded_headers;
+    while (my ($key, $value) = splice @$headers, 0, 2) {
+        push @encoded_headers,
+                            $key => encode('MIME-Header-ISO_2022_JP' => $value);
+    }
+
     my $email = Email::Simple->create(
-        header => [
-            From    => encode('MIME-Header-ISO_2022_JP' => $params{from}),
-            To      => encode('MIME-Header-ISO_2022_JP' => $params{to}),
-            Subject => encode('MIME-Header-ISO_2022_JP' => $params{subject}),
-        ],
-        body => encode('iso-2022-jp' => $params{body}),
+        header => \@encoded_headers,
+        body => encode('iso-2022-jp' => $body),
         attributes => {
             content_type => 'text/plain',
             charset      => 'ISO-2022-JP',
@@ -99,21 +110,19 @@ sub run {
     my @entries = $self->fetch_entries_by_period($time_from, $time_to);
     die "Didn't have new entries after $time_from." unless @entries;
 
+    # send email
     my $tx = Text::Xslate->new(
         path => "$config->{app_base}/batch",
         type => 'text',
     );
-    my $body = $tx->render("mail.tx" => {
+    my $email_text = $tx->render("mail.tx" => {
         entries => \@entries,
+        time_from => $time_from,
+        time_to => $time_to,
     });
+    my ($headers, $body) = $self->parse_email($email_text);
 
-    # send email
-    $self->send_emails(
-        from => $config->{mail_from},
-        to => $config->{mail_to},
-        subject => "$time_from\以降の更新",
-        body => $body,
-    );
+    $self->send_emails($headers, $body);
 
     # save when we checked entries last
     $self->storage->set('current_time' => $time_to->epoch);

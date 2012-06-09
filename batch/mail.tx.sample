@@ -1,3 +1,7 @@
+From: mail@from
+To: mail@to
+Subject: THE SUBJECT OF EMAIL
+
 : for $entries -> $entry {
 <: $entry.name :> (<: $entry.time :>)
 <: $entry.message :>
