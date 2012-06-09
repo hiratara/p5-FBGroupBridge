@@ -24,44 +24,57 @@ sub storage {
     );
 }
 
-sub run {
-    my $self = shift;
-    my $config = Hiratara::FBGroupBridge->instance->config;
+sub fetch_entries_by_period {
+    my ($self, $time_from, $time_to) = @_;
 
+    my $group_id = Hiratara::FBGroupBridge->instance->config->{group_id};
     my $token = $self->storage->get('access_token');
-
-    my $time_from;
-    if (my $epoch_from = $self->storage->get('current_time')) {
-        $time_from = localtime($epoch_from);
-    } else {
-        ($time_from = localtime) -= ONE_DAY;
-    }
-
-    # check new entries
     my $fb = Facebook::Graph->new(access_token => $token);
 
-    my $body = '';
-    my $latest_time = $time_from;
-    my $group_id = $config->{group_id};
+    my @results;
     my $url = $fb->query->find("$group_id/feed")->uri_as_string;
     # $url =~ s{\?}{\?limit=25&until=1337329336&};
     for my $post (@{ $fb->query->request($url)->as_hashref->{data} }) {
         my $updated_time = localtime(Time::Piece->strptime(
             $post->{updated_time}, "%Y-%m-%dT%H:%M:%S%z"
         )->epoch);
-        $latest_time = $updated_time if $latest_time < $updated_time;
         last if $updated_time < $time_from;
 
         for my $entry ($post, @{$post->{comments}{data}}) {
             my $created_time = localtime(Time::Piece->strptime(
                 $entry->{created_time}, "%Y-%m-%dT%H:%M:%S%z"
             )->epoch);
-            next if $created_time <= $time_from;
+            $time_from <= $created_time && $created_time < $time_to or next;
 
-            $body .= "$entry->{from}{name} ($created_time)\n";
-            $body .= $entry->{message} . "\n";
-            $body .= "\n";
+            push @results, {
+                time => $created_time,
+                name => $entry->{from}{name},
+                message => $entry->{message},
+            };
         }
+    }
+
+    return @results;
+}
+
+sub run {
+    my $self = shift;
+    my $config = Hiratara::FBGroupBridge->instance->config;
+
+    my $time_to = localtime;
+    my $time_from;
+    if (my $epoch_from = $self->storage->get('current_time')) {
+        $time_from = localtime($epoch_from);
+    } else {
+        $time_from = $time_to - ONE_DAY;
+    }
+
+    # check new entries
+    my $body = '';
+    for my $entry ($self->fetch_entries_by_period($time_from, $time_to)) {
+        $body .= "$entry->{name} ($entry->{time})\n";
+        $body .= $entry->{message} . "\n";
+        $body .= "\n";
     }
 
     die "Didn't have new entries after $time_from." unless $body;
@@ -82,7 +95,7 @@ sub run {
     sendmail($email, {transport => $transport});
 
     # save when we checked entries last
-    $self->storage->set('current_time' => $latest_time->epoch);
+    $self->storage->set('current_time' => $time_to->epoch);
 }
 
 1;
