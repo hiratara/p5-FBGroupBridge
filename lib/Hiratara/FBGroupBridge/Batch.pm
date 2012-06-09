@@ -15,17 +15,23 @@ use Class::Accessor::Lite (
     rw => [qw//],
 );
 
+sub storage {
+    my $self = shift;
+    my $config = Hiratara::FBGroupBridge->instance->config;
+
+    return new Hiratara::FBGroupBridge::Storage(
+        file => "$config->{app_base}/$config->{storage_path}",
+    );
+}
+
 sub run {
     my $self = shift;
     my $config = Hiratara::FBGroupBridge->instance->config;
-    my $storage = new Hiratara::FBGroupBridge::Storage(
-        file => "$config->{app_base}/$config->{storage_path}",
-    );
 
-    my $token = $storage->get('access_token');
+    my $token = $self->storage->get('access_token');
 
     my $time_from;
-    if (my $epoch_from = $storage->get('current_time')) {
+    if (my $epoch_from = $self->storage->get('current_time')) {
         $time_from = localtime($epoch_from);
     } else {
         ($time_from = localtime) -= ONE_DAY;
@@ -76,7 +82,7 @@ sub run {
     sendmail($email, {transport => $transport});
 
     # save when we checked entries last
-    $storage->set('current_time' => $latest_time->epoch);
+    $self->storage->set('current_time' => $latest_time->epoch);
 }
 
 1;
