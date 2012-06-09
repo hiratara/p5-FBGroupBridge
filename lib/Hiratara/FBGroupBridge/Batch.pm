@@ -26,6 +26,27 @@ sub storage {
     );
 }
 
+sub check_token {
+    my $self = shift;
+
+    my $now = localtime;
+    my $expires = localtime($self->storage->get('access_token_expires'));
+
+    if ($expires - ONE_DAY * 7 < $now) {
+        my $config = Hiratara::FBGroupBridge->instance->config;
+        $self->send_emails([
+            From => $config->{your_email},
+            To => $config->{your_email},
+            Subject => "Please update your access token",
+        ], <<__BODY__);
+Please update your access token by following URL;
+$config->{postback_url}
+__BODY__
+    }
+
+    die "access token was expired on $expires" if $expires < $now;
+}
+
 sub fetch_entries_by_period {
     my ($self, $time_from, $time_to) = @_;
 
@@ -97,6 +118,8 @@ sub send_emails {
 sub run {
     my $self = shift;
     my $config = Hiratara::FBGroupBridge->instance->config;
+
+    $self->check_token;
 
     my $time_to = localtime;
     my $time_from;

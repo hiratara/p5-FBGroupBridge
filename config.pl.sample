@@ -12,4 +12,5 @@ my $config = {
     group_id => 'YOUR GROUP ID',
     smtp_host => 'your.host.com',
     smtp_port => 2525,
+    your_email => 'your_email@address',
 };

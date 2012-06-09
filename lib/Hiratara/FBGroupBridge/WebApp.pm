@@ -50,7 +50,7 @@ sub _second_page {
 
     my $token_response = $fb->request_access_token($code);
     $storage->set(access_token => $token_response->token);
-    $storage->set(access_token_expires => $token_response->expires);
+    $storage->set(access_token_expires => time + $token_response->expires);
 
     $res->body('Refresh access token');
 }
