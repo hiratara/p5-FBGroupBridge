@@ -7,6 +7,7 @@ requires 'Class::Accessor::Lite';
 requires 'Facebook::Graph';
 requires 'Email::Simple';
 requires 'Email::Sender::Simple';
+requires 'Text::Xslate';
 
 tests 't/*.t';
 author_tests 'xt';

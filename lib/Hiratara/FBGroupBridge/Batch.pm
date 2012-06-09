@@ -8,6 +8,7 @@ use Time::Seconds qw/ONE_DAY/;
 use Email::Simple;
 use Email::Sender::Simple qw/sendmail/;
 use Email::Sender::Transport::SMTP;
+use Text::Xslate;
 use Hiratara::FBGroupBridge;
 use Hiratara::FBGroupBridge::Storage;
 use Class::Accessor::Lite (
@@ -89,14 +90,16 @@ sub run {
     }
 
     # check new entries
-    my $body = '';
-    for my $entry ($self->fetch_entries_by_period($time_from, $time_to)) {
-        $body .= "$entry->{name} ($entry->{time})\n";
-        $body .= $entry->{message} . "\n";
-        $body .= "\n";
-    }
+    my @entries = $self->fetch_entries_by_period($time_from, $time_to);
+    die "Didn't have new entries after $time_from." unless @entries;
 
-    die "Didn't have new entries after $time_from." unless $body;
+    my $tx = Text::Xslate->new(
+        path => "$config->{app_base}/batch",
+        type => 'text',
+    );
+    my $body = $tx->render("mail.tx" => {
+        entries => \@entries,
+    });
 
     # send email
     $self->send_emails(

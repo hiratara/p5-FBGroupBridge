@@ -1,0 +1,5 @@
+: for $entries -> $entry {
+<: $entry.name :> (<: $entry.time :>)
+<: $entry.message :>
+
+: }
