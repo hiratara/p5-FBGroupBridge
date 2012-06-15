@@ -54,26 +54,36 @@ sub fetch_entries_by_period {
     my $fb = Facebook::Graph->new(access_token => $token);
 
     my @results;
-    my $url = $fb->query->find("$group_id/feed")->uri_as_string;
-    # $url =~ s{\?}{\?limit=25&until=1337329336&};
-    for my $post (@{ $fb->query->request($url)->as_hashref->{data} }) {
-        my $updated_time = localtime(Time::Piece->strptime(
-            $post->{updated_time}, "%Y-%m-%dT%H:%M:%S%z"
-        )->epoch);
-        last if $updated_time < $time_from;
+    my $next_url = $fb->query->find("$group_id/feed")->uri_as_string;
+    while ($next_url) {
+        my $result = $fb->query->request($next_url)->as_hashref;
 
-        for my $entry ($post, @{$post->{comments}{data}}) {
-            my $created_time = localtime(Time::Piece->strptime(
-                $entry->{created_time}, "%Y-%m-%dT%H:%M:%S%z"
+        my $is_done;
+        for my $post (@{$result->{data}}) {
+            my $updated_time = localtime(Time::Piece->strptime(
+                $post->{updated_time}, "%Y-%m-%dT%H:%M:%S%z"
             )->epoch);
-            $time_from <= $created_time && $created_time < $time_to or next;
+            if ($updated_time < $time_from) {
+                $is_done = 1;
+                last;
+            }
 
-            push @results, {
-                time => $created_time,
-                name => $entry->{from}{name},
-                message => $entry->{message},
-            };
+            for my $entry ($post, @{$post->{comments}{data}}) {
+                my $created_time = localtime(Time::Piece->strptime(
+                    $entry->{created_time}, "%Y-%m-%dT%H:%M:%S%z"
+                )->epoch);
+                $time_from <= $created_time && $created_time < $time_to or next;
+
+                push @results, {
+                    time => $created_time,
+                    name => $entry->{from}{name},
+                    message => $entry->{message},
+                };
+            }
         }
+
+        last if $is_done;
+        $next_url = $result->{paging}{next};
     }
 
     return @results;
